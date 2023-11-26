@@ -51,7 +51,8 @@ android {
 
 dependencies {
 
-
+    implementation("com.squareup.okhttp3:okhttp:4.9.0")
+    implementation("org.java-websocket:Java-WebSocket:1.3.0")
     implementation("androidx.core:core-splashscreen:1.0.0")
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")

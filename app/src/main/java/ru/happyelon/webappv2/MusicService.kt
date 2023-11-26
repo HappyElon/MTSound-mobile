@@ -16,6 +16,7 @@ class MusicService : Service() {
     private val channelId = "MyChannel"
     private val notificationId = 1
     private val ACTION_MUTE = "ru.radioulitka.ACTION_MUTE"
+    private var isMuted = false
 
     inner class MusicBinder : Binder() {
         fun getService(): MusicService {
@@ -28,14 +29,18 @@ class MusicService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val musicUrl = "http://air.radioulitka.ru:8000/ulitka_128" //"https://www.radioulitka.ru/"
+        val musicUrl = "http://air.radioulitka.ru:8000/ulitka_128"
 
         if (intent?.action == ACTION_MUTE) {
-            if (mediaPlayer?.isPlaying == true) {
-                mediaPlayer?.pause()
+            isMuted = !isMuted
+            if (isMuted) {
+                mediaPlayer?.setVolume(0f, 0f) // Mute
             } else {
-                mediaPlayer?.start()
+                mediaPlayer?.setVolume(1f, 1f) // Unmute
             }
+
+            // Determine sound state and update notification
+            showNotification("Now Playing", "Livestream...", isMuted)
         } else {
             if (mediaPlayer == null) {
                 mediaPlayer = MediaPlayer()
@@ -50,7 +55,7 @@ class MusicService : Service() {
                 mediaPlayer?.setOnPreparedListener { mediaPlayer ->
                     Log.d("MusicService", "MediaPlayer prepared")
                     try {
-                        showNotification("Now Playing", "Livestream...")
+                        showNotification("Now Playing", "Livestream...", isMuted)
                         mediaPlayer.start()
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -62,7 +67,7 @@ class MusicService : Service() {
         return START_STICKY
     }
 
-    private fun showNotification(title: String, content: String) {
+    private fun showNotification(title: String, content: String, isMuted: Boolean) {
         Log.d("MusicService", "showNotification called")
         createNotificationChannel()
 
@@ -76,13 +81,15 @@ class MusicService : Service() {
         muteIntent.action = ACTION_MUTE
         val mutePendingIntent = PendingIntent.getService(this, 0, muteIntent, PendingIntent.FLAG_IMMUTABLE)
 
+        val muteActionText = if (isMuted) "Unmute" else "Mute"
+
         val notification = NotificationCompat.Builder(this, channelId)
             .setContentTitle(title)
             .setContentText(content)
             .setSmallIcon(R.drawable.player_notification)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
-            .addAction(R.drawable.ic_mute, "Mute", mutePendingIntent)
+            .addAction(R.drawable.ic_mute, muteActionText, mutePendingIntent)
             .build()
 
         startForeground(notificationId, notification)
@@ -107,3 +114,5 @@ class MusicService : Service() {
         super.onDestroy()
     }
 }
+
+

@@ -4,7 +4,11 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
@@ -15,6 +19,11 @@ import android.webkit.WebViewClient
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.WebSocket
+import java.net.URI
+import java.net.URISyntaxException
 
 class MainActivity : AppCompatActivity() {
 
@@ -51,6 +60,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         loadWebPage(savedInstanceState)
+
+        val client: OkHttpClient =  OkHttpClient()
+        val request: Request = Request
+            .Builder()
+            .url("ws://185.10.68.166")
+            .build()
+        val listener = MySocketListener()
+        val ws: WebSocket = client.newWebSocket(request, listener)
     }
 
     open class MyWebViewClient : WebViewClient() {
@@ -60,7 +77,7 @@ class MainActivity : AppCompatActivity() {
 
             if (url.contains("radioulitka.ru")) {
                 view.loadUrl(url)
-                return true
+                return false
             } else {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                 view.context.startActivity(intent)
@@ -100,7 +117,7 @@ class MainActivity : AppCompatActivity() {
             webView.restoreState(savedInstanceState)
         } else {
             Log.d("LOAD_WEB_PAGE", "loading basic url")
-            webView.loadUrl("http://www.radioulitka.ru")
+            webView.loadUrl("http://radioulitka.ru")
         }
     }
 
