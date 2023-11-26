@@ -21,15 +21,20 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
 import okhttp3.WebSocket
-import java.net.URI
-import java.net.URISyntaxException
+import okhttp3.WebSocketListener
+import org.json.JSONException
+import org.json.JSONObject
+import ru.happyelon.webappv2.MainActivity.MySocketListener.Companion.NORMAL_CLOSURE_STATUS
+import java.net.URL
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
     private var musicService: MusicService? = null
     private var isBound = false
+    private var webSocket: WebSocket? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,13 +66,70 @@ class MainActivity : AppCompatActivity() {
 
         loadWebPage(savedInstanceState)
 
-        val client: OkHttpClient =  OkHttpClient()
-        val request: Request = Request
-            .Builder()
-            .url("ws://185.10.68.166")
+        val url = URL(webView.url)
+        val protocol = url.protocol // "https"
+        val ws_protocol = "ws"
+        var host = url.host // "mtsound.ru"
+        val path = url.path // "/path/to/resource"
+
+        val ws_host = "$ws_protocol://$host$path"
+        host = host.replace("mtsound.ru", "api.mtsound")
+
+        val modifiedUrl = "$protocol://$host$path"
+
+        connectWebSocket(modifiedUrl)
+    }
+
+    private fun connectWebSocket(url: String) {
+        val client: OkHttpClient = OkHttpClient()
+        val request: Request = Request.Builder()
+            .url(url)
             .build()
-        val listener = MySocketListener()
-        val ws: WebSocket = client.newWebSocket(request, listener)
+        webSocket = client.newWebSocket(request, MySocketListener())
+    }
+
+    private class MySocketListener : WebSocketListener() {
+        override fun onOpen(webSocket: WebSocket, response: Response) {
+            val jsonMessage = """{"type":"getRoom"}"""
+            sendWebSocketMessage(jsonMessage, webSocket)
+            Log.d("Connection", "success")
+        }
+
+        override fun onMessage(webSocket: WebSocket, text: String) {
+            output("Received : $text")
+
+            try {
+                val json = JSONObject(text)
+                val name = json.getString("name")
+                val track = json.getString("track")
+
+                // Now you can use 'name' and 'track' as needed
+                Log.d("WebSocket", "Name: $name, Track: $track")
+            } catch (e: JSONException) {
+                Log.e("WebSocket", "Error parsing JSON: $text", e)
+            }
+        }
+
+        override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+            webSocket.close(NORMAL_CLOSURE_STATUS, null)
+            output("Closing : $code / $reason")
+        }
+
+        override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+            output("Error : " + t.message + "fsda")
+        }
+
+        private fun output(text: String?) {
+            Log.d("MySocket", text!!)
+        }
+
+        private fun sendWebSocketMessage(message: String, webSocket: WebSocket) {
+            webSocket.send(message)
+        }
+
+        companion object {
+            private const val NORMAL_CLOSURE_STATUS = 1000
+        }
     }
 
     open class MyWebViewClient : WebViewClient() {
@@ -75,7 +137,7 @@ class MainActivity : AppCompatActivity() {
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
             val url = request.url.toString()
 
-            if (url.contains("radioulitka.ru")) {
+            if (url.contains("mtsound.ru")) {
                 view.loadUrl(url)
                 return false
             } else {
@@ -117,7 +179,7 @@ class MainActivity : AppCompatActivity() {
             webView.restoreState(savedInstanceState)
         } else {
             Log.d("LOAD_WEB_PAGE", "loading basic url")
-            webView.loadUrl("http://radioulitka.ru")
+            webView.loadUrl("https://mtsound.ru")
         }
     }
 
@@ -131,6 +193,10 @@ class MainActivity : AppCompatActivity() {
         override fun onServiceDisconnected(name: ComponentName?) {
             isBound = false
         }
+    }
+
+    fun getWebView(): WebView {
+        return webView
     }
 
     override fun onDestroy() {

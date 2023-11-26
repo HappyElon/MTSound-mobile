@@ -15,7 +15,7 @@ class MusicService : Service() {
     private var mediaPlayer: MediaPlayer? = null
     private val channelId = "MyChannel"
     private val notificationId = 1
-    private val ACTION_MUTE = "ru.radioulitka.ACTION_MUTE"
+    private val ACTION_MUTE = "ru.mtsound.ACTION_MUTE"
     private var isMuted = false
 
     inner class MusicBinder : Binder() {
