@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="MainTheme" parent="Theme.AppCompat.Light.NoActionBar"/>
+
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenAnimationDuration">1000</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/white</item>
+        <item name="windowSplashScreenBackground">@color/purple_700</item>
+    </style>
+
+    <style name="RobotoBoldText">
+        <item name="android:layout_width">151dp</item>
+        <item name="android:layout_height">142dp</item>
+        <item name="android:text">@string/no_internet_notification</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold|normal</item>
+    </style>
+
+    <style name="RobotoBoldButton" parent="Widget.AppCompat.Button">
+        <item name="android:layout_width">151dp</item>
+        <item name="android:layout_height">142dp</item>
+        <item name="android:text">@string/try_again</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold|normal</item>
+    </style>
+
+    <style name="Theme.App.MySplashScreen" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/imgv2</item>
+        <item name="postSplashScreenTheme">@style/MainTheme</item>
+    </style>
+
+</resources>
